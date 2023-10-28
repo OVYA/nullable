@@ -1,5 +1,7 @@
 # Go Nullable
 
+[![golangci-lint](https://github.com/ovya/nullable/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/ovya/nullable/actions/workflows/golangci-lint.yml)
+
 * Provide Go database null value for *any* data type thanks to the Golang generic features.
 * Make possible to scan and store any structs' type into json and jsonb Postgresql data type.
 * Support JSON marshaling and unMarshaling with conventional
