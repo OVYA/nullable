@@ -2,6 +2,9 @@
 
 [![golangci-lint](https://github.com/ovya/nullable/actions/workflows/golangci-lint.yml/badge.svg)](https://github.com/ovya/nullable/actions/workflows/golangci-lint.yml)
 [![mod-verify](https://github.com/OVYA/nullable/actions/workflows/mod-verify.yml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/mod-verify.yml)
+[![gosec](https://github.com/OVYA/nullable/actions/workflows/gosec.yaml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/gosec.yaml)
+[![staticcheck](https://github.com/OVYA/nullable/actions/workflows/staticcheck.yaml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/staticcheck.yaml)
+[![test](https://github.com/OVYA/nullable/actions/workflows/test.yml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/test.yml)
 
 * Provide Go database null value for *any* data type thanks to the Golang generic features.
 * Make possible to scan and store any structs' type into json and jsonb Postgresql data type.
