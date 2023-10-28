@@ -1,0 +1,28 @@
+- name: Run golangci-lint
+  # You may pin to the exact commit or the version.
+  # uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc
+  uses: golangci/golangci-lint-action@v3.7.0
+  with:
+    # The version of golangci-lint to use.
+When `install-mode` is `binary` (default) the value can be v1.2 or v1.2.3 or `latest` to use the latest version.
+When `install-mode` is `goinstall` the value can be v1.2.3, `latest`, or the hash of a commit.
+
+    version: # optional
+    # golangci-lint command line arguments
+    args: # optional, default is 
+    # golangci-lint working directory, default is project root
+    working-directory: # optional
+    # the token is used for fetching patch of a pull request to show only new issues
+    github-token: # optional, default is ${{ github.token }}
+    # if set to true and the action runs on a pull request - the action outputs only newly found issues
+    only-new-issues: # optional, default is false
+    # if set to true then the all caching functionality will be complete disabled,
+takes precedence over all other caching options.
+
+    skip-cache: # optional, default is false
+    # if set to true then the action doesn't cache or restore ~/go/pkg.
+    skip-pkg-cache: # optional, default is false
+    # if set to true then the action doesn't cache or restore ~/.cache/go-build.
+    skip-build-cache: # optional, default is false
+    # The mode to install golangci-lint. It can be 'binary' or 'goinstall'.
+    install-mode: # optional, default is binary
