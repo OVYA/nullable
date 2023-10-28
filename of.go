@@ -116,7 +116,7 @@ func (n *Of[T]) Value() (driver.Value, error) {
 		return string(b), nil
 	}
 
-	return nil, fmt.Errorf("Type %T is not supported for value %v", *n.Val, *n.Val)
+	return nil, fmt.Errorf("type %T is not supported for value %v", *n.Val, *n.Val)
 }
 
 // Scan implements the sql.Scanner interface.

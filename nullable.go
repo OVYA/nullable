@@ -139,7 +139,7 @@ func (n *Of[T]) scanInt(v any) error {
 		return nil
 	}
 
-	return fmt.Errorf("Type %T is not supported", *new(T))
+	return fmt.Errorf("type %T is not supported", *new(T))
 }
 
 func (n *Of[T]) scanFloat(v any) error {
