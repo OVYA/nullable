@@ -13,9 +13,7 @@
     github-token: # optional, default is ${{ github.token }}
     # if set to true and the action runs on a pull request - the action outputs only newly found issues
     only-new-issues: # optional, default is false
-    # if set to true then the all caching functionality will be complete disabled,
-takes precedence over all other caching options.
-
+    # if set to true then the all caching functionality will be complete disabled, takes precedence over all other caching options.
     skip-cache: # optional, default is false
     # if set to true then the action doesn't cache or restore ~/go/pkg.
     skip-pkg-cache: # optional, default is false
