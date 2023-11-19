@@ -11,7 +11,8 @@ type Of[T bool | int | int16 | int32 | int64 | string | float64 | JSON] struct {
 	Val *T `json:"nullable_value" db:"_"`
 }
 
-func (n *Of[T]) isValid() bool {
+// IsNull returns true iff the value is nil
+func (n *Of[T]) IsNull() bool {
 	return n.Val != nil
 }
 
@@ -96,7 +97,7 @@ func (n *Of[T]) Value() (driver.Value, error) {
 		panic("calling Value on nil receiver")
 	}
 
-	if !n.isValid() {
+	if n.IsNull() {
 		return nil, nil
 	}
 
