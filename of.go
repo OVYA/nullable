@@ -3,6 +3,7 @@ package nullable
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -13,7 +14,7 @@ type Of[T bool | int | int16 | int32 | int64 | string | float64 | JSON] struct {
 
 // IsNull returns true iff the value is nil
 func (n *Of[T]) IsNull() bool {
-	return n.Val != nil
+	return n == nil || n.Val == nil
 }
 
 // GetValue implements the getter.
@@ -93,10 +94,6 @@ func (n *Of[T]) UnmarshalJSON(data []byte) error {
 
 // Value implements the driver.Valuer interface.
 func (n *Of[T]) Value() (driver.Value, error) {
-	if n == nil {
-		panic("calling Value on nil receiver")
-	}
-
 	if n.IsNull() {
 		return nil, nil
 	}
@@ -124,7 +121,7 @@ func (n *Of[T]) Value() (driver.Value, error) {
 // This method decodes a JSON-encoded value into the struct.
 func (n *Of[T]) Scan(v any) error {
 	if n == nil {
-		panic("calling Scan on nil receiver")
+		return errors.New("calling Scan on nil receiver")
 	}
 
 	switch any(n.Val).(type) {

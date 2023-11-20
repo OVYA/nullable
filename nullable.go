@@ -11,7 +11,7 @@ import (
 type JSON any
 
 type NullableI[T bool | int | int16 | int32 | int64 | string | float64 | JSON] interface {
-	// IsNull returns true iff the value is nil/null
+	// IsNull returns true if itself is nil or the value is nil/null
 	IsNull() bool
 	// GetValue implements the getter.
 	GetValue() *T
