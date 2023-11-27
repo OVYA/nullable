@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 // JSON permits to handle Postgresl Json[b] type
@@ -178,10 +179,28 @@ func (n *Of[T]) scanBool(v any) error {
 }
 
 func (n *Of[T]) scanTime(v any) error {
-	null := sql.NullTime{}
-	err := null.Scan(v)
-	if err != nil {
-		return fmt.Errorf("nullable database scanning Time : %w", err)
+	if v == nil {
+		n.SetNull()
+
+		return nil
+	}
+
+	null := new(sql.NullTime)
+
+	switch t := v.(type) {
+	case string:
+		var err error
+		null.Time, err = time.Parse(t, t)
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+	case time.Time:
+		err := null.Scan(v)
+		if err != nil {
+			return fmt.Errorf("nullable database scanning Time : %w", err)
+		}
+	default:
+		return fmt.Errorf("canot parse type \"%T\" with value \"%v\" to time", t, t)
 	}
 
 	if null.Valid {
