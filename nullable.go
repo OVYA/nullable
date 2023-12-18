@@ -9,7 +9,7 @@ import (
 )
 
 // JSON permits to handle Postgresl Json[b] type
-type JSON any
+type JSON = any
 
 type NullableI[T bool | int | int16 | int32 | int64 | string | float64 | JSON] interface {
 	// IsNull returns true if itself is nil or the value is nil/null
