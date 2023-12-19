@@ -6,7 +6,8 @@
 [![staticcheck](https://github.com/OVYA/nullable/actions/workflows/staticcheck.yaml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/staticcheck.yaml)
 [![test](https://github.com/OVYA/nullable/actions/workflows/test.yml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/test.yml)
 
-* Provide Go database null value for *any* data type thanks to the Golang generic features.
+* Provide Go database null value for *any* data type as JSON thanks to the Golang generic features.
+* Support data type `github.com/google/uuid.UUID`.
 * Make possible to scan and store any structs' type into json and jsonb Postgresql data type.
 * Support JSON marshaling and unMarshaling with conventional
   Javascript/Typescript value `null` instead of `Valid:true/false, Type:value`

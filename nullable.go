@@ -6,12 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // JSON permits to handle Postgresl Json[b] type
 type JSON = any
 
-type NullableI[T bool | int | int16 | int32 | int64 | string | float64 | JSON] interface {
+type NullableI[T bool | int | int16 | int32 | int64 | string | uuid.UUID | float64 | JSON] interface {
 	// IsNull returns true if itself is nil or the value is nil/null
 	IsNull() bool
 	// GetValue implements the getter.
@@ -33,7 +35,7 @@ type NullableI[T bool | int | int16 | int32 | int64 | string | float64 | JSON] i
 }
 
 // FromValue is a Nullable constructor from the given value thanks to Go generics' inference.
-func FromValue[T bool | int | int16 | int32 | int64 | string | float64 | JSON](b T) *Of[T] {
+func FromValue[T bool | int | int16 | int32 | int64 | string | uuid.UUID | float64 | JSON](b T) *Of[T] {
 	out := Of[T]{}
 	out.SetValue(b)
 
@@ -41,7 +43,7 @@ func FromValue[T bool | int | int16 | int32 | int64 | string | float64 | JSON](b
 }
 
 // Null is a Nullable constructor with Null value.
-func Null[T bool | int | int16 | int32 | int64 | string | float64 | JSON]() *Of[T] {
+func Null[T bool | int | int16 | int32 | int64 | string | uuid.UUID | float64 | JSON]() *Of[T] {
 	return &Of[T]{}
 }
 
@@ -68,6 +70,10 @@ func (n *Of[T]) scanJSON(v any) error {
 }
 
 func (n *Of[T]) scanString(v any) error {
+	if n == nil {
+		panic("Calling scanString on nil receiver")
+	}
+
 	null := sql.NullString{}
 	err := null.Scan(v)
 	if err != nil {
@@ -76,6 +82,31 @@ func (n *Of[T]) scanString(v any) error {
 
 	if null.Valid {
 		n.SetValue(any(null.String).(T))
+	} else {
+		n.SetNull()
+	}
+
+	return nil
+}
+
+func (n *Of[T]) scanUUID(v any) error {
+	if n == nil {
+		panic("Calling scanUUID on nil receiver")
+	}
+
+	null := sql.NullString{}
+	err := null.Scan(v)
+	if err != nil {
+		return fmt.Errorf("nullable database scanning string : %w", err)
+	}
+
+	if null.Valid {
+		uid, err := uuid.Parse(null.String)
+		if err != nil {
+			return fmt.Errorf("UUID parsing failed : %w", err)
+		}
+
+		n.SetValue(any(uid).(T))
 	} else {
 		n.SetNull()
 	}

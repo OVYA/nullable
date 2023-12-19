@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
-type Of[T bool | int | int16 | int32 | int64 | string | float64 | JSON] struct {
+type Of[T bool | int | int16 | int32 | int64 | string | uuid.UUID | float64 | JSON] struct {
 	//nolint: tagliatelle // Internal use
 	Val *T `json:"nullable_value" db:"_"`
 }
@@ -100,7 +102,7 @@ func (n *Of[T]) Value() (driver.Value, error) {
 	}
 
 	switch value := any(n.Val).(type) {
-	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time:
+	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time, *uuid.UUID:
 		return *n.Val, nil
 	case JSON:
 		if value == nil {
@@ -128,6 +130,8 @@ func (n *Of[T]) Scan(v any) error {
 	switch any(n.Val).(type) {
 	case *string:
 		return n.scanString(v)
+	case *uuid.UUID:
+		return n.scanUUID(v)
 	case *int16, *int32, *int, *int64:
 		return n.scanInt(v)
 	case *float64:
