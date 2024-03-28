@@ -93,7 +93,7 @@ func (n *Of[T]) UnmarshalJSON(data []byte) error {
 
 // Value implements the driver.Valuer interface.
 func (n *Of[T]) Value() (driver.Value, error) {
-	if n.IsNull() {
+	if n.IsNull() || n == nil {
 		return nil, nil
 	}
 
