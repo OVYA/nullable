@@ -31,10 +31,6 @@ func (n *Of[T]) GetValue() *T {
 
 // SetValue implements the setter.
 func (n *Of[T]) SetValue(b T) {
-	if n == nil {
-		panic("calling SetValue on nil receiver")
-	}
-
 	n.Val = &b
 }
 
@@ -56,7 +52,7 @@ func (n *Of[T]) SetValueP(ref *T) {
 // SetNull set to null.
 func (n *Of[T]) SetNull() {
 	if n == nil {
-		panic("calling SetNull on nil receiver")
+		return
 	}
 
 	n.Val = nil
@@ -76,7 +72,7 @@ func (n *Of[T]) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the decoding json interface.
 func (n *Of[T]) UnmarshalJSON(data []byte) error {
 	if n == nil {
-		panic("calling UnmarshalJSON on nil receiver")
+		return nil
 	}
 
 	if n.Val == nil && data != nil {
