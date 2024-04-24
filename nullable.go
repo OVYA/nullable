@@ -56,9 +56,17 @@ func (n *Of[T]) scanJSON(v any) error {
 
 	if null.Valid {
 		value := new(T)
-		err := json.Unmarshal([]byte(null.String), value)
-		if err != nil {
-			return fmt.Errorf("nullable database unmarshaling json : %w", err)
+
+		if scanner, ok := any(value).(sql.Scanner); ok {
+			err := scanner.Scan(v)
+			if err != nil {
+				return fmt.Errorf("custom scanner error on nullable : %w", err)
+			}
+		} else {
+			err := json.Unmarshal([]byte(null.String), value)
+			if err != nil {
+				return fmt.Errorf("nullable database unmarshaling json : %w", err)
+			}
 		}
 
 		n.SetValue(*value)

@@ -92,6 +92,46 @@ _, err = daoService.NamedExec("INSERT INTO test (name, date_to, data) VALUES (:n
 if err != nil…
 ```
 
+### Custom primitive data type
+
+The library `Nullable` persist and read the structured types as `JSON`
+in/from the database but it is possible to workaround this feature.
+
+Suppose you need the custom type `type PhoneNumber string`.
+If you use this type as is :
+```
+type Coordinate struct {
+	Email      *nullable.Of[string]            `json:"email,omitempty"`
+	Phone      *nullable.Of[phonenum.PhoneNum] `json:"phone"`
+}
+```
+
+persisting a `Coordinate` in database will persist the field `Phone` in `JSON`, what we don't want.
+In order to persist (resp. read) the type `Phone` as a `string`, you
+must implement the native Go database `driver.Valuer` (reps. `sql.Scanner`) :
+
+```
+// Value implements the driver.Valuer interface.
+func (pn *PhoneNumb) Value() (driver.Value, error) {
+	return driver.Value(string(*pn)), nil
+}
+
+// Scan implements the sql.Scanner interface.
+func (pn *PhoneNum) Scan(v any) error {
+	switch val := v.(type) {
+	case int, int64, uint64:
+		*pn = PhoneNum(strconv.Itoa(val.(int)))
+	case string:
+		*pn = PhoneNum(val)
+	default:
+		return errors.New(fmt.Sprintf("can not scan phone number from type %T", val))
+	}
+
+	return nil
+}
+```
+
+This `Scanner` can even read an integer from the database to fulfill the phone number as a `string`.
 
 ## Notes
 

@@ -31,6 +31,10 @@ func (n *Of[T]) GetValue() *T {
 
 // SetValue implements the setter.
 func (n *Of[T]) SetValue(b T) {
+	if n == nil {
+		panic("calling SetValue on nil receiver")
+	}
+
 	n.Val = &b
 }
 
@@ -52,7 +56,7 @@ func (n *Of[T]) SetValueP(ref *T) {
 // SetNull set to null.
 func (n *Of[T]) SetNull() {
 	if n == nil {
-		return
+		panic("calling SetNull on nil receiver")
 	}
 
 	n.Val = nil
@@ -72,7 +76,7 @@ func (n *Of[T]) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON implements the decoding json interface.
 func (n *Of[T]) UnmarshalJSON(data []byte) error {
 	if n == nil {
-		return nil
+		panic("calling UnmarshalJSON on nil receiver")
 	}
 
 	if n.Val == nil && data != nil {
@@ -93,7 +97,7 @@ func (n *Of[T]) UnmarshalJSON(data []byte) error {
 
 // Value implements the driver.Valuer interface.
 func (n *Of[T]) Value() (driver.Value, error) {
-	if n.IsNull() || n == nil {
+	if n.IsNull() {
 		return nil, nil
 	}
 
@@ -103,6 +107,15 @@ func (n *Of[T]) Value() (driver.Value, error) {
 	case JSON:
 		if value == nil {
 			return nil, nil
+		}
+
+		if valuer, ok := value.(driver.Valuer); ok {
+			v, err := valuer.Value()
+			if err != nil {
+				return nil, fmt.Errorf("custom valuer error on nullable : %w", err)
+			}
+
+			return v, nil
 		}
 
 		b, err := json.Marshal(value)
