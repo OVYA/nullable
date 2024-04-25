@@ -32,7 +32,10 @@ func (n *Of[T]) GetValue() *T {
 // SetValue implements the setter.
 func (n *Of[T]) SetValue(b T) {
 	if n == nil {
-		panic("calling SetValue on nil receiver")
+		n = new(Of[T])
+		n.SetValue(b)
+
+		return
 	}
 
 	n.Val = &b
