@@ -31,13 +31,6 @@ func (n *Of[T]) GetValue() *T {
 
 // SetValue implements the setter.
 func (n *Of[T]) SetValue(b T) {
-	if n == nil {
-		n = new(Of[T])
-		n.SetValue(b)
-
-		return
-	}
-
 	n.Val = &b
 }
 
@@ -45,10 +38,6 @@ func (n *Of[T]) SetValue(b T) {
 // If ref is not nil, calls SetValue(*ref)
 // If ref is nil, calls SetNull()
 func (n *Of[T]) SetValueP(ref *T) {
-	if n == nil {
-		n = new(Of[T])
-	}
-
 	if ref != nil {
 		n.SetValue(*ref)
 	} else {
@@ -59,7 +48,7 @@ func (n *Of[T]) SetValueP(ref *T) {
 // SetNull set to null.
 func (n *Of[T]) SetNull() {
 	if n == nil {
-		panic("calling SetNull on nil receiver")
+		return
 	}
 
 	n.Val = nil
