@@ -11,7 +11,6 @@ import (
 )
 
 type Of[T bool | int | int16 | int32 | int64 | string | uuid.UUID | float64 | JSON] struct {
-	//nolint: tagliatelle // Internal use
 	val *T
 }
 
