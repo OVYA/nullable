@@ -12,12 +12,12 @@ import (
 
 type Of[T bool | int | int16 | int32 | int64 | string | uuid.UUID | float64 | JSON] struct {
 	//nolint: tagliatelle // Internal use
-	Val *T `json:"nullable_value" db:"_"`
+	val *T
 }
 
 // IsNull returns true iff the value is nil
 func (n *Of[T]) IsNull() bool {
-	return n == nil || n.Val == nil
+	return n == nil || n.val == nil
 }
 
 // GetValue implements the getter.
@@ -26,18 +26,29 @@ func (n *Of[T]) GetValue() *T {
 		return nil
 	}
 
-	return n.Val
+	return n.val
 }
 
 // SetValue implements the setter.
 func (n *Of[T]) SetValue(b T) {
-	n.Val = &b
+	if n == nil {
+		n = new(Of[T])
+		n.SetValue(b)
+
+		return
+	}
+
+	n.val = &b
 }
 
 // SetValueP implements the setter by pointer.
 // If ref is not nil, calls SetValue(*ref)
 // If ref is nil, calls SetNull()
 func (n *Of[T]) SetValueP(ref *T) {
+	if n == nil {
+		n = new(Of[T])
+	}
+
 	if ref != nil {
 		n.SetValue(*ref)
 	} else {
@@ -48,10 +59,10 @@ func (n *Of[T]) SetValueP(ref *T) {
 // SetNull set to null.
 func (n *Of[T]) SetNull() {
 	if n == nil {
-		return
+		panic("calling SetNull on nil receiver")
 	}
 
-	n.Val = nil
+	n.val = nil
 }
 
 // MarshalJSON implements the encoding json interface.
@@ -71,15 +82,15 @@ func (n *Of[T]) UnmarshalJSON(data []byte) error {
 		panic("calling UnmarshalJSON on nil receiver")
 	}
 
-	if n.Val == nil && data != nil {
-		n.Val = new(T)
+	if n.val == nil && data != nil {
+		n.val = new(T)
 	}
 
 	if data == nil {
 		return nil
 	}
 
-	err := json.Unmarshal(data, n.Val)
+	err := json.Unmarshal(data, n.val)
 	if err != nil {
 		return fmt.Errorf("nullable Unmarshal Error : %w", err)
 	}
@@ -93,9 +104,9 @@ func (n *Of[T]) Value() (driver.Value, error) {
 		return nil, nil
 	}
 
-	switch value := any(n.Val).(type) {
+	switch value := any(n.val).(type) {
 	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time, *uuid.UUID:
-		return *n.Val, nil
+		return *n.val, nil
 	case JSON:
 		if value == nil {
 			return nil, nil
@@ -118,7 +129,7 @@ func (n *Of[T]) Value() (driver.Value, error) {
 		return string(b), nil
 	}
 
-	return nil, fmt.Errorf("type %T is not supported for value %v", *n.Val, *n.Val)
+	return nil, fmt.Errorf("type %T is not supported for value %v", *n.val, *n.val)
 }
 
 // Scan implements the sql.Scanner interface.
@@ -128,7 +139,7 @@ func (n *Of[T]) Scan(v any) error {
 		return errors.New("calling Scan on nil receiver")
 	}
 
-	switch any(n.Val).(type) {
+	switch any(n.val).(type) {
 	case *string:
 		return n.scanString(v)
 	case *uuid.UUID:

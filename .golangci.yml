@@ -17,7 +17,7 @@ run:
   # If false (default) - golangci-lint acquires file lock on start.
   allow-parallel-runners: true
 
-  exclude-dirs:
+  skip-dirs:
     - test/testdata_etc # test files
     - internal/cache # extracted from Go code
     - internal/renameio # extracted from Go code
@@ -31,7 +31,7 @@ run:
 # output configuration options
 output:
   # Format: colored-line-number|line-number|json|colored-tab|tab|checkstyle|code-climate|junit-xml|github-actions|teamcity
-  Formats: colored-line-number
+  Format: colored-line-number
   # Multiple can be specified by separating them by comma, output can be provided
   # for each of them by separating format name and path by colon symbol.
   # Output path can be either `stdout`, `stderr` or path to the file to write to.
@@ -153,7 +153,7 @@ linters-settings:
   govet:
     disable:
       - sigchanyzer
-    shadow: true
+    check-shadowing: true
     settings:
       printf:
         funcs:
