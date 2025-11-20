@@ -133,6 +133,16 @@ func (pn *PhoneNum) Scan(v any) error {
 
 This `Scanner` can even read an integer from the database to fulfill the phone number as a `string`.
 
+## Testing
+
+Run all tests including PostgreSQL integration tests:
+
+```bash
+make test
+```
+
+This will run tests in Docker with a PostgreSQL database. See the `tests/` directory for more details.
+
 ## Notes
 
 ### Similar Project
@@ -140,8 +150,3 @@ This `Scanner` can even read an integer from the database to fulfill the phone n
 This project is inspired from
 [gonull](https://github.com/lomsa-dev/gonull) that fails
 scanning/storing some Postgresql type like `enum`, `timestamp` and `json`/`jsonb`.
-
-### Go Tests for Postgresql
-
-Go tests storing and scanning data from/to Postgresql database are in
-progress and will be available soon in an other `git` repository.
