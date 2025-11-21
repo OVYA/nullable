@@ -1,13 +1,16 @@
 package tests
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/jmoiron/sqlx"
 	"github.com/ovya/nullable"
 )
 
@@ -341,4 +344,101 @@ func TestNullValues(t *testing.T) {
 	}
 
 	t.Log("✓ NULL values correctly preserved")
+}
+
+func TestInsertAndReadWithSqlx(t *testing.T) {
+	connStr := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		getEnv("DB_HOST", "localhost"),
+		getEnv("DB_PORT", "5445"),
+		getEnv("DB_USER", "testuser"),
+		getEnv("DB_PASSWORD", "testpass"),
+		getEnv("DB_NAME", "testdb"),
+		getEnv("DB_SSLMODE", "disable"),
+	)
+
+	db, err := sqlx.Open("pgx", connStr)
+	if err != nil {
+		t.Fatalf("Failed to connect to database: %v", err)
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		t.Fatalf("Failed to ping database: %v", err)
+	}
+
+	ctx := context.Background()
+	name := "plop name sqlx"
+
+	// Create test data
+	data := getEmbeddedObj()
+
+	test := testedStruct[embeddedStruct]{
+		Name:   nullable.FromValue(name),
+		DateTo: nullable.FromValue(now),
+		Data:   nullable.FromValue(data),
+	}
+
+	// Insert using BindNamed
+	query, args, err := db.BindNamed("INSERT INTO test (name, date_to, data) VALUES (:name, :date_to, :data) RETURNING id",
+		test,
+	)
+	if err != nil {
+		t.Fatalf("BindNamed failed: %v", err)
+	}
+
+	var insertedID int64
+	err = db.QueryRowContext(ctx, query, args...).Scan(&insertedID)
+	if err != nil {
+		t.Fatalf("Insert failed: %v", err)
+	}
+
+	t.Logf("✓ Inserted record with ID: %d using BindNamed", insertedID)
+
+	// Read back using GetContext
+	var readTest testedStruct[embeddedStruct]
+
+	err = sqlx.GetContext(ctx, db,
+		&readTest,
+		"SELECT id, name, date_to, data FROM test WHERE id = $1",
+		insertedID,
+	)
+	if err != nil {
+		t.Fatalf("GetContext failed: %v", err)
+	}
+
+	b, _ := json.MarshalIndent(readTest, "", "  ")
+	t.Logf("✓ Read back record with GetContext:\n%s", b)
+
+	// Verify data
+	if readTest.Name.GetValue() == nil {
+		t.Fatal("Name should not be null")
+	}
+	if *readTest.Name.GetValue() != name {
+		t.Fatalf("Name mismatch: expected '%s', got '%s'", name, *readTest.Name.GetValue())
+	}
+
+	if readTest.DateTo.IsNull() {
+		t.Fatal("DateTo should not be null")
+	}
+
+	if readTest.DateTo.GetValue().Sub(now) > time.Nanosecond {
+		t.Fatalf("DateTo mismatch: expected '%s', got '%s'", now, *readTest.DateTo.GetValue())
+	}
+
+	if readTest.Data.GetValue() == nil {
+		t.Fatal("Data should not be null")
+	}
+	if readTest.Data.GetValue().String != astring {
+		t.Fatalf("Data.String mismatch: expected '%s', got '%s'", astring, readTest.Data.GetValue().String)
+	}
+
+	if readTest.Data.GetValue().Bool.GetValue() == nil {
+		t.Fatal("Data.Bool should not be null")
+	}
+	if !*readTest.Data.GetValue().Bool.GetValue() {
+		t.Fatal("Data.Bool should be true")
+	}
+
+	t.Log("✓ Data verification passed with sqlx")
 }
