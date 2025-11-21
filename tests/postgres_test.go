@@ -39,7 +39,7 @@ func TestAllTypes(t *testing.T) {
 
 	typeTest := TypeTest{
 		StringVal: nullable.FromValue("test string"),
-		IntVal:    nullable.FromValue(42),
+		IntVal:    nullable.FromValue(aint),
 		Int16Val:  nullable.FromValue(int16(16)),
 		Int32Val:  nullable.FromValue(int32(32)),
 		Int64Val:  nullable.FromValue(int64(64)),
@@ -81,7 +81,7 @@ func TestAllTypes(t *testing.T) {
 
 	// Verify values
 	assert.Equal(t, "test string", *readTest.StringVal.GetValue())
-	assert.Equal(t, 42, *readTest.IntVal.GetValue())
+	assert.Equal(t, aint, *readTest.IntVal.GetValue())
 	assert.Equal(t, int16(16), *readTest.Int16Val.GetValue())
 	assert.Equal(t, int32(32), *readTest.Int32Val.GetValue())
 	assert.Equal(t, int64(64), *readTest.Int64Val.GetValue())
@@ -113,7 +113,7 @@ func TestReadExisting(t *testing.T) {
 
 		require.False(t, test.Data.IsNull(), "Data should not be null")
 		assert.Contains(t, test.Data.GetValue().String, "value ")
-		assert.Equal(t, 42, test.Data.GetValue().Int)
+		assert.Equal(t, aint, test.Data.GetValue().Int)
 
 		require.False(t, test.Data.GetValue().Bool.IsNull(), "data.Bool should not be null")
 		assert.True(t, *test.Data.GetValue().Bool.GetValue(), "data.Bool should be true")
@@ -185,8 +185,6 @@ func TestInsertAndRead(t *testing.T) {
 	db := getDB(t)
 	defer db.Close()
 
-	name := "plop name"
-
 	// Create test data
 	data := getEmbeddedObj()
 
@@ -230,6 +228,9 @@ func TestInsertAndRead(t *testing.T) {
 
 	require.NotNil(t, readTest.Data.GetValue().Bool.GetValue(), "Data.Bool should not be null")
 	assert.True(t, *readTest.Data.GetValue().Bool.GetValue(), "Data.Bool should be true")
+
+	require.NotNil(t, readTest.Data.GetValue().DateTo.GetValue(), "Data.DateTo should not be null")
+	assert.WithinDuration(t, now, *readTest.Data.GetValue().DateTo.GetValue(), time.Millisecond)
 }
 
 func TestInsertAndReadWithSqlx(t *testing.T) {
@@ -251,7 +252,6 @@ func TestInsertAndReadWithSqlx(t *testing.T) {
 	require.NoError(t, err, "Failed to ping database")
 
 	ctx := context.Background()
-	name := "plop name sqlx"
 
 	// Create test data
 	data := getEmbeddedObj()

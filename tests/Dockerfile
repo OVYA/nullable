@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine
+FROM golang:1.24-alpine
 
 # Install PostgreSQL server and client
 RUN apk add --no-cache \
@@ -8,6 +8,9 @@ RUN apk add --no-cache \
 
 # Set working directory
 WORKDIR /app
+
+# Install gotestsum for better test output
+RUN go install gotest.tools/gotestsum@latest
 
 # Copy go mod files first for better caching
 COPY go.mod go.sum ./
@@ -31,4 +34,4 @@ EXPOSE 5445
 
 # Run the entrypoint script
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["go", "test", "-v", "./tests"]
+CMD ["gotestsum", "--format", "testdox", "--", "-v", "./tests/..."]

@@ -62,11 +62,11 @@ Comes from a test on Postgresql database with Time and JSON insertion :
 type Test[T nullable.JSON] struct {
 	ID int64 `json:"id"`
 	// This string can be null
-	Name *nullable.Of[string] `json:"name"`
+	Name nullable.Of[string] `json:"name"`
 	// This timestamp can be null
-	DateTo *nullable.Of[time.Time] `json:"dateTo"`
+	DateTo nullable.Of[time.Time] `json:"dateTo"`
 	// You can any interface you want in data
-	Data *nullable.Of[T] `json:"data"`
+	Data nullable.Of[T] `json:"data"`
 }
 
 type dataType = struct {
@@ -101,8 +101,8 @@ Suppose you need the custom type `type PhoneNumber string`.
 If you use this type as is :
 ```
 type Coordinate struct {
-	Email      *nullable.Of[string]            `json:"email,omitempty"`
-	Phone      *nullable.Of[phonenum.PhoneNum] `json:"phone"`
+	Email      nullable.Of[string]            `json:"email,omitempty"`
+	Phone      nullable.Of[phonenum.PhoneNum] `json:"phone"`
 }
 ```
 

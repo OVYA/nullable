@@ -12,6 +12,8 @@ import (
 
 var now = time.Now()
 var astring = "a string"
+var name = "PLOP"
+var aint = 42
 
 type embeddedStruct struct {
 	ID     int64                      `json:"id" db:"id"`
@@ -75,7 +77,7 @@ func getDB(t *testing.T) *sql.DB {
 func getEmbeddedObj() embeddedStruct {
 	obj := embeddedStruct{
 		String: astring,
-		Int:    42,
+		Int:    aint,
 		Bool:   nullable.FromValue(true),
 		DateTo: nullable.FromValue(now),
 	}
@@ -96,7 +98,7 @@ func getNullTestObj[T nullable.JSON]() testedStruct[T] {
 
 func getTestObjs[T nullable.JSON](data T) []testedStruct[T] {
 	obj1 := testedStruct[T]{
-		Name:   nullable.FromValue("PLOP"),
+		Name:   nullable.FromValue(name),
 		DateTo: nullable.FromValue(now),
 		Data:   nullable.FromValue(data),
 	}

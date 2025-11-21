@@ -16,7 +16,7 @@ docker-shell: docker-build ## Open a shell in the container
 	docker run --rm -it nullable-postgres-test /bin/sh
 
 test: docker-build ## Run all Go tests (including database tests with Docker)
-	docker run --rm nullable-postgres-test
+	docker run --rm -t nullable-postgres-test
 
 tidy: ## Tidy Go modules
 	go mod tidy
