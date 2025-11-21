@@ -2,12 +2,12 @@ package tests
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/ovya/nullable"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMarshalUnmarshal(t *testing.T) {
@@ -15,34 +15,28 @@ func TestMarshalUnmarshal(t *testing.T) {
 	toObj := []testedStruct[embeddedStruct]{{}, {}}
 
 	b, err := json.Marshal(obj)
-
-	if !assert.Nil(t, err, "Marshaling Nullable data failed") {
-		panic(err)
-	}
+	require.NoError(t, err, "Marshaling Nullable data failed")
 
 	err = json.Unmarshal(b, &toObj)
-
-	if !assert.Nil(t, err, "Unmarshaling into Nullable data failed") {
-		panic(err)
-	}
+	require.NoError(t, err, "Unmarshaling into Nullable data failed")
 
 	for i := range 2 {
-		assert.Equal(t, obj[i].Name.GetValue(), toObj[i].Name.GetValue(), fmt.Sprintf("Marshaling and Unmarshaling does not return the same value. i = %d ; s = '%v'", i, toObj[i].Name.GetValue()))
+		assert.Equal(t, obj[i].Name.GetValue(), toObj[i].Name.GetValue(), "Name mismatch at index %d", i)
+
 		dte := toObj[i].DateTo.GetValue()
 		if dte == nil {
-			assert.Nil(t, obj[i].DateTo.GetValue(), fmt.Sprintf("Marshaling and Unmarshaling nil value mismatch. i = %d", i))
+			assert.Nil(t, obj[i].DateTo.GetValue(), "DateTo nil value mismatch at index %d", i)
 		} else {
-			assert.Equal(t, time.Duration(0), dte.Sub(now), fmt.Sprintf("Marshaling and Unmarshaling does not return the same value. i = %d", i))
+			assert.Equal(t, time.Duration(0), dte.Sub(now), "DateTo value mismatch at index %d", i)
 		}
 
 		data := obj[i].Data.GetValue()
 		if data == nil {
-			assert.Nil(t, toObj[i].Data.GetValue(), fmt.Sprintf("Marshaling and Unmarshaling nil value mismatch. i = %d", i))
+			assert.Nil(t, toObj[i].Data.GetValue(), "Data nil value mismatch at index %d", i)
 		} else {
-			assert.Equal(t, data.Bool.GetValue(), toObj[i].Data.GetValue().Bool.GetValue(), "Marshaling and Unmarshaling does not return the same value")
-			assert.Equal(t, data.Int, toObj[i].Data.GetValue().Int, "Marshaling and Unmarshaling does not return the same value")
-			assert.Equal(t, data.String, toObj[i].Data.GetValue().String, "Marshaling and Unmarshaling does not return the same value")
-			assert.Equal(t, data.String, toObj[i].Data.GetValue().String, "Marshaling and Unmarshaling does not return the same value")
+			assert.Equal(t, data.Bool.GetValue(), toObj[i].Data.GetValue().Bool.GetValue(), "Data.Bool mismatch")
+			assert.Equal(t, data.Int, toObj[i].Data.GetValue().Int, "Data.Int mismatch")
+			assert.Equal(t, data.String, toObj[i].Data.GetValue().String, "Data.String mismatch")
 		}
 	}
 }
@@ -54,9 +48,7 @@ func TestNullableEdgeCases(t *testing.T) {
 		}
 		test.Name.SetValueP(nil)
 
-		if !test.Name.IsNull() {
-			t.Error("SetValueP(nil) should result in NULL value")
-		}
+		assert.True(t, test.Name.IsNull(), "SetValueP(nil) should result in NULL value")
 	})
 
 	t.Run("SetValueP with value pointer", func(t *testing.T) {
@@ -66,18 +58,12 @@ func TestNullableEdgeCases(t *testing.T) {
 		}
 		test.Name.SetValueP(&value)
 
-		if test.Name.IsNull() {
-			t.Error("SetValueP(&value) should not result in NULL")
-		}
-		if *test.Name.GetValue() != value {
-			t.Errorf("Expected '%s', got '%s'", value, *test.Name.GetValue())
-		}
+		require.False(t, test.Name.IsNull(), "SetValueP(&value) should not result in NULL")
+		assert.Equal(t, value, *test.Name.GetValue())
 	})
 
 	t.Run("IsNull on zero value", func(t *testing.T) {
 		var test testedStruct[embeddedStruct]
-		if !test.Name.IsNull() {
-			t.Error("Zero value should be NULL")
-		}
+		assert.True(t, test.Name.IsNull(), "Zero value should be NULL")
 	})
 }
