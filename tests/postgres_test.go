@@ -108,10 +108,11 @@ func TestReadExisting(t *testing.T) {
 
 	t.Run("Reading existing not null data", func(t *testing.T) {
 		rows, err := db.Query("SELECT id, name, date_to, data FROM test WHERE name IS NOT NULL ORDER BY id")
-		defer rows.Close()
 		t.Run("Querying", func(t *testing.T) {
 			require.NoError(t, err, "Query failed")
 		})
+
+		defer rows.Close()
 
 		var tests []testedStruct[embeddedStruct]
 		for rows.Next() {
@@ -285,7 +286,6 @@ func TestInsertAndReadWithSqlx(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Create test data
 	data := getEmbeddedObj()
 
 	test := testedStruct[embeddedStruct]{
@@ -305,7 +305,8 @@ func TestInsertAndReadWithSqlx(t *testing.T) {
 		)
 		require.NoError(t, err, "BindNamed failed")
 
-		err = db.QueryRowContext(ctx, query, args...).Scan(&insertedID)
+		// err = db.QueryRowContext(ctx, query, args...).Scan(&insertedID)
+		err = db.GetContext(ctx, &insertedID, query, args...)
 		require.NoError(t, err, "Insert failed")
 
 		t.Logf("Inserted record with ID: %d using BindNamed", insertedID)

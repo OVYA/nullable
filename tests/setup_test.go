@@ -32,10 +32,10 @@ type testedStruct[T nullable.JSON] struct {
 }
 
 // Setup
-func TestMain(m *testing.M) {
-	code := m.Run()
-	os.Exit(code)
-}
+// func TestMain(m *testing.M) {
+// 	code := m.Run()
+// 	os.Exit(code)
+// }
 
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {

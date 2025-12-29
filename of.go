@@ -64,14 +64,12 @@ func (n *Of[T]) SetNull() {
 }
 
 // MarshalJSON implements the encoding json interface.
-func (n *Of[T]) MarshalJSON() ([]byte, error) {
-	if n == nil {
-		b, _ := json.Marshal(nil)
-
-		return b, nil
+func (n Of[T]) MarshalJSON() ([]byte, error) {
+	if n.IsNull() {
+		return []byte("null"), nil
 	}
 
-	return marshalJSON[T](n)
+	return marshalJSON(&n)
 }
 
 // UnmarshalJSON implements the decoding json interface.
@@ -105,7 +103,8 @@ func (n Of[T]) Value() (driver.Value, error) {
 	}
 
 	switch value := any(n.val).(type) {
-	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time, *uuid.UUID:
+	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time, *uuid.UUID, string,
+		int16, int32, int, int64, float64, bool, time.Time, uuid.UUID:
 		return *n.val, nil
 	case JSON:
 		if value == nil {
