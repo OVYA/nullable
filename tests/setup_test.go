@@ -1,19 +1,31 @@
 package tests
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/ovya/nullable"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-var now = time.Now()
+var now = time.Now().UTC()
 var astring = "a string"
 var name = "PLOP"
 var aint = 42
+
+// Package-level variables for shared test infrastructure
+var (
+	testDB        *sql.DB                      // Shared database connection
+	testContainer *postgres.PostgresContainer  // Container reference for cleanup
+)
 
 type embeddedStruct struct {
 	ID     int64                      `json:"id" db:"id"`
@@ -31,47 +43,83 @@ type testedStruct[T nullable.JSON] struct {
 	Data   nullable.Of[T]         `json:"data" db:"data"`
 }
 
-// Setup
-// func TestMain(m *testing.M) {
-// 	code := m.Run()
-// 	os.Exit(code)
-// }
+// TestMain sets up the PostgreSQL container before tests and tears it down after
+func TestMain(m *testing.M) {
+	ctx := context.Background()
 
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
+	// Create PostgreSQL container with testcontainers
+	container, err := postgres.Run(ctx,
+		"postgres:18-alpine",
+		postgres.WithInitScripts("init.sql"),
+		postgres.WithDatabase("testdb"),
+		postgres.WithUsername("testuser"),
+		postgres.WithPassword("testpass"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(60*time.Second)),
+	)
+	if err != nil {
+		log.Fatalf("Failed to start PostgreSQL container: %v", err)
 	}
-	return defaultValue
+	testContainer = container
+
+	// Get connection string and connect to database
+	connStr, err := container.ConnectionString(ctx, "sslmode=disable")
+	if err != nil {
+		log.Fatalf("Failed to get connection string: %v", err)
+	}
+
+	testDB, err = sql.Open("pgx", connStr)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Verify connection
+	if err := testDB.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
+	}
+
+	log.Println("✓ PostgreSQL container started and database connected")
+
+	// Run tests
+	code := m.Run()
+
+	// Cleanup
+	if testDB != nil {
+		testDB.Close()
+	}
+	if testContainer != nil {
+		if err := testContainer.Terminate(ctx); err != nil {
+			log.Printf("Failed to terminate container: %v", err)
+		}
+	}
+
+	os.Exit(code)
 }
 
-// getDB creates a database connection for testing
+// getDB returns the shared test database connection
 func getDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	// Build connection string from environment variables
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_PORT", "5445"),
-		getEnv("DB_USER", "testuser"),
-		getEnv("DB_PASSWORD", "testpass"),
-		getEnv("DB_NAME", "testdb"),
-		getEnv("DB_SSLMODE", "disable"),
-	)
-
-	// Connect to database
-	db, err := sql.Open("pgx", connStr)
-	if err != nil {
-		t.Fatalf("Failed to connect to database: %v", err)
+	if testDB == nil {
+		t.Fatal("testDB is nil - TestMain may not have run")
 	}
 
-	// Test connection
-	if err := db.Ping(); err != nil {
-		t.Fatalf("Failed to ping database: %v", err)
-	}
+	return testDB
+}
 
-	t.Log("✓ Connected to PostgreSQL successfully")
-	return db
+// cleanupTables truncates specified tables to reset state between tests
+func cleanupTables(t *testing.T, db *sql.DB, tables ...string) {
+	t.Helper()
+
+	for _, table := range tables {
+		query := fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", table)
+		_, err := db.Exec(query)
+		if err != nil {
+			t.Fatalf("Failed to cleanup table %s: %v", table, err)
+		}
+	}
 }
 
 func getEmbeddedObj() embeddedStruct {

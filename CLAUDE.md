@@ -31,32 +31,27 @@ The library constrains type parameter `T` to: `bool | int | int16 | int32 | int6
 
 ### Running Tests
 
-**Run all tests (including PostgreSQL integration tests):**
+**All tests (including PostgreSQL):**
+```bash
+cd tests
+go test -v ./...
+```
+
+Or from the root:
 ```bash
 make test
 ```
-This builds a Docker container with PostgreSQL and runs the complete test suite.
 
-**Run only unit tests (no database):**
+**Single test:**
 ```bash
 cd tests
-go test -run TestMarshalUnmarshal -v
-go test -run TestNullableEdgeCases -v
-```
-
-**Run specific database test:**
-```bash
-cd tests
-# Requires Docker to be running
 go test -run TestAllTypes -v
-go test -run TestInsertAndRead -v
 ```
 
-**Run a single test from the tests directory:**
-```bash
-cd tests
-go test -run TestName -v
-```
+**Requirements:**
+- Docker must be running locally
+- testcontainers-go automatically manages PostgreSQL container
+- First run downloads PostgreSQL 18 image (~80MB), subsequent runs use cached image
 
 ### Code Quality
 
@@ -73,39 +68,22 @@ go mod tidy
 cd tests && go mod tidy
 ```
 
-### Docker Development
-
-**Build Docker test image:**
-```bash
-make docker-build
-```
-
-**Open shell in test container (for debugging):**
-```bash
-make docker-shell
-```
-
-**Run tests interactively:**
-```bash
-make docker-run
-```
-
 ## Test Organization
 
 The test suite is located in `tests/` directory with its own `go.mod` that uses a `replace` directive to reference the parent module.
 
 **Test files:**
-- `nullable_test.go` - Unit tests for JSON marshaling/unmarshaling and edge cases
-- `postgres_test.go` - Integration tests with PostgreSQL database (requires Docker)
-- `setup_test.go` - Test fixtures and database connection helpers
+- `marshal_test.go` - Comprehensive tests for JSON marshaling/unmarshaling with complex nested structures
+- `nullable_test.go` - Unit tests for nullable value operations and edge cases
+- `postgres_test.go` - Integration tests with PostgreSQL database using testcontainers
+- `setup_test.go` - TestMain setup with testcontainers, database helpers, and cleanup utilities
 
-**Test coverage verification:**
-```bash
-cd tests
-# Count test files
-find . -name "*_test.go" | wc -l
-# Should match the number of test files reported by `go test -v`
-```
+**Test infrastructure:**
+- Uses testcontainers-go to automatically manage PostgreSQL 18 container
+- TestMain in setup_test.go starts container once for all tests
+- Shared database connection stored in package-level `testDB` variable
+- `cleanupTables()` helper truncates tables between tests for isolation
+- Container automatically terminates after tests complete
 
 ## Working with MarshalJSON/UnmarshalJSON
 
@@ -139,13 +117,13 @@ The library integrates with `database/sql` through two interfaces:
 - **Go version:** 1.24.10
 - **Dependencies:**
   - `github.com/google/uuid` - UUID type support
-  - Test dependencies: `pgx/v5`, `sqlx`, `testify`
+  - Test dependencies: `pgx/v5`, `sqlx`, `testify`, `testcontainers-go`
 
 ## Common Gotchas
 
 1. **Module structure**: Root module (`github.com/ovya/nullable`) and test module (`github.com/ovya/nullable/tests`) are separate. Always run `go mod tidy` in both directories after dependency changes.
 
-2. **Test execution**: Integration tests require Docker. Use `make test` for full suite, or run unit tests directly with `go test` in the `tests/` directory.
+2. **Test execution**: Integration tests require Docker to be running (testcontainers uses it). Run `cd tests && go test -v ./...` or `make test` for the full suite.
 
 3. **Type constraints**: The generic constraint limits supported types. Adding new primitive types requires updating the constraint in both `NullableI` interface and `Of[T]` struct definition.
 

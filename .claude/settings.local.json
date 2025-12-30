@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(go test:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Skill(superpowers:brainstorming)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(go get:*)"
     ]
   }
 }

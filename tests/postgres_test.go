@@ -32,7 +32,7 @@ type TypeTest struct {
 
 func TestAllTypes(t *testing.T) {
 	db := getDB(t)
-	defer db.Close()
+	cleanupTables(t, db, "type_test")
 
 	testUUID := uuid.New()
 	testTime := time.Now().UTC().Truncate(time.Second)
@@ -104,7 +104,6 @@ func TestAllTypes(t *testing.T) {
 
 func TestReadExisting(t *testing.T) {
 	db := getDB(t)
-	defer db.Close()
 
 	t.Run("Reading existing not null data", func(t *testing.T) {
 		rows, err := db.Query("SELECT id, name, date_to, data FROM test WHERE name IS NOT NULL ORDER BY id")
@@ -172,7 +171,7 @@ func TestReadExisting(t *testing.T) {
 
 func TestNullValues(t *testing.T) {
 	db := getDB(t)
-	defer db.Close()
+	cleanupTables(t, db, "type_test")
 
 	test := testedStruct[embeddedStruct]{
 		Name:   nullable.Null[string](),
@@ -212,7 +211,7 @@ func TestNullValues(t *testing.T) {
 
 func TestInsertAndRead(t *testing.T) {
 	db := getDB(t)
-	defer db.Close()
+	cleanupTables(t, db, "test")
 
 	// Create test data
 	data := getEmbeddedObj()
@@ -267,22 +266,11 @@ func TestInsertAndRead(t *testing.T) {
 }
 
 func TestInsertAndReadWithSqlx(t *testing.T) {
-	connStr := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_PORT", "5445"),
-		getEnv("DB_USER", "testuser"),
-		getEnv("DB_PASSWORD", "testpass"),
-		getEnv("DB_NAME", "testdb"),
-		getEnv("DB_SSLMODE", "disable"),
-	)
+	stdDB := getDB(t)
+	cleanupTables(t, stdDB, "test")
 
-	db, err := sqlx.Open("pgx", connStr)
-	require.NoError(t, err, "Failed to connect to database")
-	defer db.Close()
-
-	err = db.Ping()
-	require.NoError(t, err, "Failed to ping database")
+	// Wrap standard DB in sqlx.DB
+	db := sqlx.NewDb(stdDB, "pgx")
 
 	ctx := context.Background()
 
@@ -296,6 +284,7 @@ func TestInsertAndReadWithSqlx(t *testing.T) {
 
 	var query string
 	var args []any
+	var err error
 	var insertedID int64
 
 	t.Run("Insert using db.BindNamed ", func(t *testing.T) {

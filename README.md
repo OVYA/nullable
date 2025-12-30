@@ -384,8 +384,21 @@ err := json.Unmarshal([]byte(`null`), &value)
 Run all tests including PostgreSQL integration tests:
 
 ```bash
+cd tests
+go test -v ./...
+```
+
+Or from the root:
+
+```bash
 make test
 ```
+
+**Requirements:**
+- Docker must be running (testcontainers uses Docker to spin up PostgreSQL)
+- No manual database setup needed - testcontainers handles everything
+
+**First run:** Tests will download the PostgreSQL 18 image (~80MB), subsequent runs use cached image.
 
 Run only unit tests (no database required):
 
@@ -393,8 +406,6 @@ Run only unit tests (no database required):
 cd tests
 go test -run 'TestMarshal|TestUnmarshal|TestNullableEdgeCases' -v
 ```
-
-See the `tests/` directory for more examples and test cases.
 
 ## Comparison with Alternatives
 

@@ -1,6 +1,7 @@
-version: "2"
+# .golangci.yml
+version: '2'
 run:
-  go: "1.24"
+  go: '1.24'
   issues-exit-code: 1
   tests: false
   allow-parallel-runners: true
@@ -49,20 +50,12 @@ linters:
         - func
     depguard:
       rules:
-        acl:
-          files:
-            - '!**/app/acl/**/*.go'
-          deny:
-            - pkg: ovya.fr/csite/app/dao/events/acl
-              desc: acl MUST NOT be called from dao. Use app/acl/... instead
-            - pkg: ovya.fr/csite/app/dao/personne/acq/alert/acl
-              desc: acl MUST NOT be called from dao. Use app/acl/... instead
         logger:
           deny:
             - pkg: github.com/sirupsen/logrus
-              desc: logging is allowed only by github.com/rs/zerolog
+              desc: logging is allowed only by github.com/uber-go/zap
             - pkg: log
-              desc: logging is allowed only by github.com/rs/zerolog
+              desc: logging is allowed only by github.com/uber-go/zap
     dupl:
       threshold: 100
     funlen:
@@ -101,7 +94,7 @@ linters:
             - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
             - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
     lll:
-      line-length: 140
+      line-length: 124
     mnd:
       checks:
         - argument
@@ -111,14 +104,21 @@ linters:
         - return
         - assign
       ignored-numbers:
-        - "0666"
-        - "0755"
-        - "42"
-        - "1"
-        - "2"
-        - "3"
-        - "4"
-        - "5"
+        - '0666'
+        - '0600'
+        - '0644'
+        - '0755'
+        - '0777'
+        - '0700'
+        - '42'
+        - '1'
+        - '2'
+        - '3'
+        - '4'
+        - '5'
+        - '8'
+        - '16'
+        - '32'
       ignored-files:
         - magic1_.+\.go$
       ignored-functions:
