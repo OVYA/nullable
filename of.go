@@ -3,7 +3,6 @@ package nullable
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -58,35 +57,35 @@ func (n *Of[T]) SetValueP(ref *T) {
 // SetNull set to null.
 func (n *Of[T]) SetNull() {
 	if n == nil {
-		panic("calling SetNull on nil receiver")
+		n = new(Of[T])
 	}
 
 	n.val = nil
 }
 
 // MarshalJSON implements the encoding json interface.
-func (n *Of[T]) MarshalJSON() ([]byte, error) {
-	if n == nil {
-		b, _ := json.Marshal(nil)
-
-		return b, nil
+func (n Of[T]) MarshalJSON() ([]byte, error) {
+	if n.IsNull() {
+		return []byte("null"), nil
 	}
 
-	return marshalJSON[T](n)
+	return marshalJSON(&n)
 }
 
 // UnmarshalJSON implements the decoding json interface.
 func (n *Of[T]) UnmarshalJSON(data []byte) error {
 	if n == nil {
-		panic("calling UnmarshalJSON on nil receiver")
+		n = new(Of[T])
 	}
 
-	if n.val == nil && data != nil {
-		n.val = new(T)
-	}
+	if data == nil || string(data) == "null" {
+		n.SetNull()
 
-	if data == nil {
 		return nil
+	}
+
+	if n.val == nil {
+		n.val = new(T)
 	}
 
 	err := json.Unmarshal(data, n.val)
@@ -98,13 +97,14 @@ func (n *Of[T]) UnmarshalJSON(data []byte) error {
 }
 
 // Value implements the driver.Valuer interface.
-func (n *Of[T]) Value() (driver.Value, error) {
-	if n.IsNull() {
+func (n Of[T]) Value() (driver.Value, error) {
+	if n.val == nil {
 		return nil, nil
 	}
 
 	switch value := any(n.val).(type) {
-	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time, *uuid.UUID:
+	case *string, *int16, *int32, *int, *int64, *float64, *bool, *time.Time, *uuid.UUID, string,
+		int16, int32, int, int64, float64, bool, time.Time, uuid.UUID:
 		return *n.val, nil
 	case JSON:
 		if value == nil {
@@ -135,7 +135,7 @@ func (n *Of[T]) Value() (driver.Value, error) {
 // This method decodes a JSON-encoded value into the struct.
 func (n *Of[T]) Scan(v any) error {
 	if n == nil {
-		return errors.New("calling Scan on nil receiver")
+		n = new(Of[T])
 	}
 
 	switch any(n.val).(type) {
