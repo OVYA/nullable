@@ -6,6 +6,8 @@
 [![staticcheck](https://github.com/OVYA/nullable/actions/workflows/staticcheck.yaml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/staticcheck.yaml)
 [![test](https://github.com/OVYA/nullable/actions/workflows/test.yml/badge.svg)](https://github.com/OVYA/nullable/actions/workflows/test.yml)
 
+## This library was developed by [pivaldi](https://github.com/pivaldi/) and is now maintained [HERE](https://github.com/pivaldi/nullable).
+
 A type-safe nullable value library for Go using generics, designed for seamless JSON marshaling and database operations.
 
 ## Features
