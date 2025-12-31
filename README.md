@@ -10,13 +10,13 @@ A type-safe nullable value library for Go using generics, designed for seamless 
 
 ## Features
 
-- 🎯 **Type-safe nullable values** for any supported type using Go generics
-- 🗄️ **Database-friendly** with built-in `sql.Scanner` and `driver.Valuer` implementations
-- 📦 **JSON marshaling** that uses standard `null` instead of `{Valid: true, Value: ...}`
-- 🔧 **PostgreSQL JSON/JSONB support** for storing complex types
-- 🆔 **UUID support** with `github.com/google/uuid`
-- ⚡ **Zero external dependencies** (except `google/uuid`)
-- ✅ **Fully tested** with comprehensive unit and integration tests
+- **Type-safe nullable values** for any supported type using Go generics
+- **Database-friendly** with built-in `sql.Scanner` and `driver.Valuer` implementations
+- **JSON marshaling** that uses standard `null` instead of `{Valid: true, Value: ...}`
+- **PostgreSQL JSON/JSONB support** for storing complex types
+- **UUID support** with `github.com/google/uuid`
+- **Zero external dependencies** (except `google/uuid`)
+- **Fully tested** with comprehensive unit and integration tests
 
 ## Installation
 
@@ -574,19 +574,19 @@ func UpdateUser(req UpdateUserRequest) {
 #### When to Choose Each
 
 **Choose `nullable` when:**
-- ✅ Building typical CRUD applications
-- ✅ You need clean JSON marshaling for database types
-- ✅ Simpler 2-state model (null/value) fits your needs
-- ✅ You want type safety with constraints
-- ✅ You prefer a simpler API
+- Building typical CRUD applications
+- You need clean JSON marshaling for database types
+- Simpler 2-state model (null/value) fits your needs
+- You want type safety with constraints
+- You prefer a simpler API
 
 **Choose `opt` when:**
-- ✅ Building REST APIs with PATCH endpoints
-- ✅ You need to distinguish "omitted" from "null"
-- ✅ Implementing partial update semantics
-- ✅ Working with GraphQL (handles optional/nullable distinction)
-- ✅ You need support for any type (not just specific types)
-- ✅ You want functional operations like `Map()`
+- Building REST APIs with PATCH endpoints
+- You need to distinguish "omitted" from "null"
+- Implementing partial update semantics
+- Working with GraphQL (handles optional/nullable distinction)
+- You need support for any type (not just specific types)
+- You want functional operations like `Map()`
 
 Both packages solve the "clean JSON marshaling" problem well. The key difference is whether you need 2 states (null/value) or 3 states (unset/null/value).
 
